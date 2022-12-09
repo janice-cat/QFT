@@ -152,7 +152,6 @@ def plot_figure2(Emax=12, L=10, m=1):
     #permission error?
     #subprocess.Popen(['plots/reproduce_fig2_raw_phi2.pdf'], shell=True)
 
-
 if __name__ == "__main__":
     a, b, c = run(0.0, 10.0, neigs=3, g2=0.0, L=2*np.pi, m=1, printout=False, save=True)
     #plot_figure2()
