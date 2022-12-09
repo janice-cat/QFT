@@ -1,9 +1,10 @@
 ######################################################
 #
-# Fock space Hamiltonian truncation for phi^4 theory in 2 dimensions
+# Fock space Hamiltonian truncation for phi^2 theory in 2 dimensions
 # Authors: Slava Rychkov (slava.rychkov@lpt.ens.fr) and Lorenzo Vitale (lorenzo.vitale@epfl.ch)
 # December 2014
 #
+# Compute energy spectrum with phi^2 coupling as a test for truncation method.
 ######################################################
 
 import phi1234
@@ -19,6 +20,9 @@ import pickle
 
 # Plotting parameters
 textwidth = 6.47699
+slide_width = 11.5
+half_slide_width = 5.67
+aspect_ratio = 5/7
 pres_params = {'axes.edgecolor': 'black',
                   'axes.facecolor':'white',
                   'axes.grid': False,
@@ -31,7 +35,7 @@ pres_params = {'axes.edgecolor': 'black',
                   'xtick.labelsize': 18,
                   'ytick.labelsize': 18,
                   'text.usetex': True,
-                  'figure.figsize': [7, 5],
+                  'figure.figsize': [half_slide_width, half_slide_width * aspect_ratio],
                   'font.family': 'sans-serif',
                   #'mathtext.fontset': 'cm',
                   'xtick.bottom':True,
@@ -147,27 +151,61 @@ def run(g4, Emax, neigs=3, g2=0.0, L=2*np.pi, m=1, printout=False, save=True):
 
     return vacuumE, K1spectrum, Km1spectrum
 
+def casimir_energy(L, m=1):
+    """ Calculate the Casimir energy of the free scalar field"""
+    def E(x):
+        denom = np.sqrt(m**2 * L**2 + x**2)
+        return (-1/(np.pi * L)) * x**2 /(denom * (np.exp(denom) - 1))
+
+    result = scipy.integrate.quad(E, 0.0, np.inf)
+    return result[0]
+
+def phisquared_e0(g2, L, m=1):
+    """ Calculate the energy spectrum of phi^2 theory exactly. """
+    E0 = casimir_energy(L, m)
+    musquared = m**2 + 2*g2
+    lam = (musquared * (1 - np.log(musquared/m**2)) - m**2)/(8 * np.pi)
+    return E0 + lam*L
+
 def plot_figure2(Emax=12, L=10, m=1):
     """ Plot vacuum energy vs g for phi^2 theory.
     TODO: Code numerical integration to get E(L) and compare to exact result.
     """
     garr = np.linspace(-0.4, 0.8, 24)
-    e0_arr = []
-    for g2 in garr:
-        print(g2)
-        E0, _, _ = run(0.0, Emax, neigs=3, g2=g2, L=L, m=m)
-        e0_arr.append(E0)
-    print(e0_arr)
-    fig, ax = plt.subplots()
-    ax.plot(garr, e0_arr, 'o-', markersize=3)
+    Emaxs = [5, 7, 12, 15]
+    e0_arr = np.zeros((len(Emaxs), len(garr)))
+    e0_exact = np.zeros((len(Emaxs), len(garr)))
+
+    for i, Emax in enumerate(Emaxs):
+        for j, g2 in enumerate(garr):
+            print(f'Emax={Emax}, g2={g2}')
+            E0, _, _ = run(0.0, Emax, neigs=3, g2=g2, L=L, m=m)
+            e0_arr[i, j] = E0
+            e0_exact[i, j] = phisquared_e0(g2, L, m)
+
+    fig, (ax, ax2) = plt.subplots(1, 2, figsize=(11.5, 4.5))
+
+    #plot ground state energy vs g2, compare exact and truncated
+    ax.plot(garr, e0_exact[2, :], 'k-', label='Exact')
+    ax.plot(garr, e0_arr[2, :], 'kx', markersize=5, label='Truncated')
     ax.set_xlabel('$g_2$')
     ax.set_ylabel('$E_0$')
-    ax.set_title(f"m={m}, L={L}, Emax = {Emax}")
+    ax.set_title(f"m={m}, L={L}, Emax = {Emaxs[2]}")
+    ax.legend()
+
+    #plot difference between exact and truncated as a function of g2 for varying Emax
+    for k in range(len(Emaxs)):
+        ax2.plot(garr, e0_arr[k, :] - e0_exact[k, :], label=r'$E_{max}$' + f'= {Emaxs[k]}')
+    ax2.set_xlabel('$g_2$')
+    ax2.set_ylabel('$E_0$ - exact')
+    ax2.set_title(f"m={m}, L={L}")
+    ax2.legend()
     fig.tight_layout()
     plt.savefig('plots/reproduce_fig2_raw_phi2.pdf')
     #permission error?
     #subprocess.Popen(['plots/reproduce_fig2_raw_phi2.pdf'], shell=True)
 
 if __name__ == "__main__":
-    a, b, c = run(0.0, 10.0, neigs=3, g2=0.0, L=2*np.pi, m=1, printout=True, save=True)
-    #plot_figure2()
+    #a, b, c = run(0.0, 10.0, neigs=3, g2=0.0, L=2*np.pi, m=1, printout=True, save=True)
+    plot_figure2()
+    #print(casimir_energy(10.0))
