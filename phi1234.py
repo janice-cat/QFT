@@ -7,6 +7,7 @@
 ######################################################
 
 import scipy
+import numpy as np
 from scipy import pi
 import scipy.sparse.linalg
 import scipy.sparse
@@ -24,7 +25,7 @@ tol = 0.0001
 
 def comb(*x):
     """ computes combinatorial factor for list of elements """
-    return factorial(len(x))/scipy.prod(map(factorial,collections.Counter(x).values()))
+    return factorial(len(x))/np.prod(list(map(factorial,collections.Counter(x).values())))
 
 class Matrix():
     """ Matrix with specified state bases for row and column indexes. 
@@ -183,7 +184,7 @@ class Phi1234():
                     and -Emax-tol <= omega(a,L,m)+omega(b,L,m)- omega(c,L,m)-omega(a+b-c,L,m) <=Emax+tol)]
  
             self.h0[k] = Matrix(lookupBasis, basis)
-            for j in xrange(basis.size):
+            for j in range(basis.size):
                 newcolumn = scipy.zeros(lookupBasis.size)
                 newcolumn[j] = basis[j].energy
                 self.h0[k].addColumn(newcolumn)
@@ -194,7 +195,7 @@ class Phi1234():
                 offdiag_V = Matrix(lookupBasis, basis)
                 diagonal = scipy.zeros(basis.size)
 
-                for j in xrange(basis.size):
+                for j in range(basis.size):
                                         
                     newcolumn = scipy.zeros(lookupBasis.size)
                     for op in offdiagOps[n]:
