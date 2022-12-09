@@ -25,7 +25,7 @@ tol = 0.0001
 
 def comb(*x):
     """ computes combinatorial factor for list of elements """
-    # print map(factorial,collections.Counter(x).values())
+    print(scipy.prod(map(factorial,collections.Counter(x).values())))
     return factorial(len(x))/scipy.prod(map(factorial,collections.Counter(x).values()))
 
 class Matrix():

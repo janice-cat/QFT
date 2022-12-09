@@ -15,6 +15,7 @@ import os
 from matplotlib import pyplot as plt
 import matplotlib.colors as colors
 import subprocess
+import pickle
 
 # Plotting parameters
 # PRL Font preference: computer modern roman (cmr), medium weight (m), normal shape
@@ -67,7 +68,7 @@ plot_params = {
 }
 plt.rcParams.update(plot_params)
 
-def run(g4, Emax, neigs=3, g2=0.0, L=2*np.pi, m=1, printout=False):
+def run(g4, Emax, neigs=3, g2=0.0, L=2*np.pi, m=1, printout=False, save=True):
     """ Build basis and compute energy spectrum.
 
     Returns
@@ -87,6 +88,12 @@ def run(g4, Emax, neigs=3, g2=0.0, L=2*np.pi, m=1, printout=False):
         a.buildMatrix()
         a.saveMatrix(fstr)
 
+    #check if this spectrum computation has already been done
+    if os.path.exists(f'data/Emax={Emax}_L={L}_g2={g2}_g4={g4}_spectrum.pkl'):
+        with open(f'data/Emax={Emax}_L={L}_g2={g2}_g4={g4}_spectrum.pkl', 'rb') as handle:
+            data_dict = pickle.load(handle)
+            return data_dict['E0'], data_dict['K1spectrum'], data_dict['K-1spectrum']
+
     a.loadMatrix(fstr)
     a.buildBasis(k=1, Emax=Emax)
     a.buildBasis(k=-1, Emax=Emax)
@@ -104,13 +111,25 @@ def run(g4, Emax, neigs=3, g2=0.0, L=2*np.pi, m=1, printout=False):
     a.computeEigval(k=1, sigma=sigma, n=neigs, ren=False)
     a.computeEigval(k=-1, sigma=sigma, n=neigs, ren=False)
 
+    vacuumE = a.vacuumE(ren="raw")
+    K1spectrum = a.spectrum(k=1, ren="raw")
+    Km1spectrum = a.spectrum(k=-1, ren="raw")
+
+    if save:
+        data_dict = {}
+        data_dict['E0'] = vacuumE
+        data_dict['K1spectrum'] = K1spectrum
+        data_dict['K-1spectrum'] = Km1spectrum
+
+        with open(f'data/Emax={Emax}_L={L}_g2={g2}_g4={g4}_spectrum.pkl', 'wb') as f:
+            pickle.dump(data_dict, f)
+
     if printout:
-        print("Raw vacuum energy: ", a.vacuumE(ren="raw"))
-        print("K=1 Raw spectrum: ", a.spectrum(k=1, ren="raw"))
-        print("K=-1 Raw spectrum: ", a.spectrum(k=-1, ren="raw"))
+        print("Raw vacuum energy: ", vacuumE)
+        print("K=1 Raw spectrum: ", K1spectrum)
+        print("K=-1 Raw spectrum: ", Km1spectrum)
 
-    return a.vacuumE(ren="raw"), a.spectrum(k=1, ren="raw"), a.spectrum(k=-1, ren="raw")
-
+    return vacuumE, K1spectrum, Km1spectrum
 
 def plot_figure2(Emax=12, L=10, m=1):
     """ Plot vacuum energy vs g for phi^2 theory.
@@ -133,5 +152,7 @@ def plot_figure2(Emax=12, L=10, m=1):
     #permission error?
     #subprocess.Popen(['plots/reproduce_fig2_raw_phi2.pdf'], shell=True)
 
+
 if __name__ == "__main__":
-    plot_figure2()
+    a, b, c = run(0.0, 10.0, neigs=3, g2=0.0, L=2*np.pi, m=1, printout=False, save=True)
+    #plot_figure2()
