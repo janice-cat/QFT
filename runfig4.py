@@ -15,11 +15,12 @@ import os
 from matplotlib import pyplot as plt
 import matplotlib.colors as colors
 import utility as u
+import pickle
 
 
 def main():
-    Emax= 20.0
-    L   = 10.0
+    Emax= 10.0
+    L   =  6.283185307179586
     m   = 1 
 
     a   = phi1234.Phi1234()
@@ -39,6 +40,7 @@ def main():
     plot_figure4(a, Emax=Emax, L=L, m=m)
 
 def calcPhi4(a, g4, Emax, neigs=3, g2=0.0, L=2*np.pi, m=1, printout=False,
+             save=True,
              ren=False  # False: only run 'raw'
                         # True : 'raw' + 'ren'
              ):
@@ -51,6 +53,18 @@ def calcPhi4(a, g4, Emax, neigs=3, g2=0.0, L=2*np.pi, m=1, printout=False,
     k2 : spectrum for Kparity == -1
     """
     sigma = -30. #hard coded parameter
+
+
+    # check if this spectrum computation has already been done
+    if os.path.exists(f'data/Emax={Emax}_L={L}_g2={g2}_g4={g4}_spectrum.pkl'):
+        with open(f'data/Emax={Emax}_L={L}_g2={g2}_g4={g4}_spectrum.pkl', 'rb') as handle:
+            data_dict = pickle.load(handle)
+            if (ren==False): 
+                return data_dict['E0'], data_dict['K1spectrum'], data_dict['K-1spectrum']
+            else:
+                return [ data_dict['E0_renlocal'], data_dict['E0_rensubl'] ], \
+                       [ data_dict['K1spectrum_renlocal'], data_dict['K1spectrum_rensubl'] ], \
+                       [ data_dict['K-1spectrum_renlocal'], data_dict['K-1spectrum_rensubl'] ]
 
     a.buildBasis(k=1, Emax=Emax)
     a.buildBasis(k=-1, Emax=Emax)
@@ -69,13 +83,25 @@ def calcPhi4(a, g4, Emax, neigs=3, g2=0.0, L=2*np.pi, m=1, printout=False,
     a.computeEigval(k=1, sigma=sigma, n=neigs, ren=False)
     a.computeEigval(k=-1, sigma=sigma, n=neigs, ren=False)
 
+    vacuumE = a.vacuumE(ren="raw")
+    K1spectrum = a.spectrum(k=1, ren="raw")
+    Km1spectrum = a.spectrum(k=-1, ren="raw")
+
     if printout:
-        print("Raw vacuum energy: ", a.vacuumE(ren="raw"))
-        print("K=1 Raw spectrum: ", a.spectrum(k=1, ren="raw"))
-        print("K=-1 Raw spectrum: ", a.spectrum(k=-1, ren="raw"))
+        print("Raw vacuum energy: ", vacuumE)
+        print("K=1 Raw spectrum: ", K1spectrum)
+        print("K=-1 Raw spectrum: ", Km1spectrum)
 
     if (ren==False): 
-        return a.vacuumE(ren="raw"), a.spectrum(k=1, ren="raw"), a.spectrum(k=-1, ren="raw")
+        if save:
+            data_dict = {}
+            data_dict['E0'] = vacuumE
+            data_dict['K1spectrum'] = K1spectrum
+            data_dict['K-1spectrum'] = Km1spectrum
+
+            with open(f'data/Emax={Emax}_L={L}_g2={g2}_g4={g4}_spectrum.pkl', 'wb') as f:
+                pickle.dump(data_dict, f)
+        return vacuumE, K1spectrum, Km1spectrum
     else:    
         a.renlocal(Er=a.vacuumE(ren="raw"))
         if printout: print("Computing renormalized eigenvalues for g0r,g2r,g4r = ", a.g0r,a.g2r,a.g4r)
@@ -85,17 +111,44 @@ def calcPhi4(a, g4, Emax, neigs=3, g2=0.0, L=2*np.pi, m=1, printout=False,
 
         a.computeEigval(k=1, sigma=sigma, n=neigs, ren=True, corr=True, printout=printout)
         a.computeEigval(k=-1, sigma=sigma, n=neigs, ren=True, corr=True, printout=printout)
-        if printout:
-            print("Renlocal vacuum energy: ", a.vacuumE(ren="renlocal"))
-            print("K=1 renlocal spectrum: ", a.spectrum(k=1, ren="renlocal"))
-            print("K=-1 renlocal spectrum: ", a.spectrum(k=-1, ren="renlocal"))
-            
-            print("Rensubl vacuum energy: ", a.vacuumE(ren="rensubl"))
-            print("K=1 rensubl spectrum: ", a.spectrum(k=1, ren="rensubl"))
-            print("K=-1 rensubl spectrum: ", a.spectrum(k=-1, ren="rensubl"))
 
+        vacuumE_renlocal = a.vacuumE(ren="renlocal")
+        K1spectrum_renlocal = a.spectrum(k=1, ren="renlocal")
+        Km1spectrum_renlocal = a.spectrum(k=-1, ren="renlocal")
+
+        vacuumE_rensubl = a.vacuumE(ren="rensubl")
+        K1spectrum_rensubl = a.spectrum(k=1, ren="rensubl")
+        Km1spectrum_rensubl = a.spectrum(k=-1, ren="rensubl")
+
+        if save:
+            data_dict = {}
+            data_dict['E0'] = vacuumE
+            data_dict['K1spectrum'] = K1spectrum
+            data_dict['K-1spectrum'] = Km1spectrum
+            data_dict['E0_renlocal'] = vacuumE_renlocal
+            data_dict['K1spectrum_renlocal'] = K1spectrum_renlocal
+            data_dict['K-1spectrum_renlocal'] = Km1spectrum_renlocal
+            data_dict['E0_rensubl'] = vacuumE_rensubl
+            data_dict['K1spectrum_rensubl'] = K1spectrum_rensubl
+            data_dict['K-1spectrum_rensubl'] = Km1spectrum_rensubl
+
+            with open(f'data/Emax={Emax}_L={L}_g2={g2}_g4={g4}_spectrum.pkl', 'wb') as f:
+                pickle.dump(data_dict, f)
+
+        if printout:
+            print("Renlocal vacuum energy: ", vacuumE_renlocal)
+            print("K=1 renlocal spectrum: ", K1spectrum_renlocal)
+            print("K=-1 renlocal spectrum: ", Km1spectrum_renlocal)
+            
+            print("Rensubl vacuum energy: ", vacuumE_rensubl)
+            print("K=1 rensubl spectrum: ", K1spectrum_rensubl)
+            print("K=-1 rensubl spectrum: ", Km1spectrum_rensubl)
+
+        return [ vacuumE_renlocal, vacuumE_rensubl ], \
+               [ K1spectrum_renlocal, K1spectrum_rensubl ], \
+               [ Km1spectrum_renlocal, Km1spectrum_rensubl ]
         # return a.vacuumE(ren="renlocal"), a.spectrum(k=1, ren="renlocal"), a.spectrum(k=-1, ren="renlocal")
-        return a.vacuumE(ren="rensubl"), a.spectrum(k=1, ren="rensubl"), a.spectrum(k=-1, ren="rensubl")
+        # return a.vacuumE(ren="rensubl"), a.spectrum(k=1, ren="rensubl"), a.spectrum(k=-1, ren="rensubl")
 
 
 def plot_figure4(a, Emax=20, L=10, m=1):
@@ -103,20 +156,28 @@ def plot_figure4(a, Emax=20, L=10, m=1):
     TODO: Code numerical integration to get E(L) and compare to exact result.
     """
     u.plotStyle()
+    g2 = 0
     garr = np.linspace(0, 5, 26)
     e0_arr = []
     for g4 in garr:
         print('g4 = {:.3f} ...'.format(g4), end='\r')
-        E0, _, _ = calcPhi4(a, g4, Emax, neigs=3, g2=0, L=L, m=m,
-                            ren=True)
-        e0_arr.append(E0)
+        E0, _, _ = calcPhi4(a, g4, Emax, neigs=3, g2=g2, L=L, m=m,
+                            save=True,
+                            ren=False)
+        e0_arr.append(E0) ### renlocal, rensubl
         print('g4 = {:.3f}, E0 = {:.3f}'.format(g4, E0))
+        # print('g4 = {:.3f}, E0_renlocal = {:.3f}, E0_rensubl = {:.3f}'.format(g4, *E0))
+    
+    e0_arr = np.array(e0_arr)
     print(e0_arr)
     fig, ax = plt.subplots()
     ax.plot(garr, e0_arr, 'o-', markersize=3)
+    # ax.plot(garr, e0_arr[:,0], '-', markersize=3)
+    # ax.plot(garr, e0_arr[:,1], '--', markersize=3)
     ax.set_xlabel('$g_4$')
     ax.set_ylabel('$E_0$')
-    ax.set_title(f"m={m}, L={L}, Emax = {Emax}")
+    # plt.legend(['ren','subl'])
+    ax.set_title(f"m={m}, L={L:.2f}, Emax = {Emax}")
     fig.tight_layout()
     plt.savefig('plots/reproduce_fig4_raw_phi4.pdf')
 
