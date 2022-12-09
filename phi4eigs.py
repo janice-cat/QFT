@@ -14,7 +14,7 @@ import scipy
 
 def main(argv):
     if len(argv) < 4:
-        print argv[0], "<fname> <g> <Emax>"
+        print (argv[0], "<fname> <g> <Emax>")
         return -1
     
     fname = argv[1]

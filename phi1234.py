@@ -17,7 +17,6 @@ from statefuncs import Basis, NotInBasis, omega, State
 from oscillators import NormalOrderedOperator as NOO
 import collections
 import renorm
-import itertools
 
 tol = 0.0001
 
@@ -25,7 +24,6 @@ tol = 0.0001
 
 def comb(*x):
     """ computes combinatorial factor for list of elements """
-    print(scipy.prod(map(factorial,collections.Counter(x).values())))
     return factorial(len(x))/scipy.prod(map(factorial,collections.Counter(x).values()))
 
 class Matrix():
@@ -287,7 +285,7 @@ class Phi1234():
             self.H[k] = self.h0Sub[k] + self.V[k][0]*self.g0r + self.V[k][2]*self.g2r + self.V[k][4]*self.g4r
     
 
-    def computeEigval(self, k=1, ren=False, corr=False, sigma=0, n=10):
+    def computeEigval(self, k=1, ren=False, corr=False, sigma=0, n=10, printout=True):
         """ Diagonalizes the Hamiltonian and possibly computes the subleading renormalization corrections
         k : K-parity quantum number 
         ren : it should have the same value as the one passed to computeHamiltonian()
@@ -305,7 +303,7 @@ class Phi1234():
         eigenvectors = eigenvectorstranspose.T
         
         if corr:
-            print("Adding subleading corrections to k="+str(k), " eigenvalues")
+            if (printout): print("Adding subleading corrections to k="+str(k), " eigenvalues")
 
             self.eigsrensubl[k] = scipy.zeros(n)
             cutoff = 5.
@@ -325,7 +323,7 @@ class Phi1234():
                 tckren[4] = scipy.interpolate.interp1d(ktab,rentab.T[2],kind='linear')
 
                 for nn in (0,2,4):
-                    for a,b,Vab in itertools.izip(self.V[k][nn].row,self.V[k][nn].col,self.V[k][nn].data):
+                    for a,b,Vab in zip(self.V[k][nn].row,self.V[k][nn].col,self.V[k][nn].data):
                         if a > b:
                             continue
                         elif a == b:
