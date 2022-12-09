@@ -305,7 +305,7 @@ class Phi1234():
         eigenvectors = eigenvectorstranspose.T
         
         if corr:
-            print "Adding subleading corrections to k="+str(k), " eigenvalues"
+            print("Adding subleading corrections to k="+str(k), " eigenvalues")
 
             self.eigsrensubl[k] = scipy.zeros(n)
             cutoff = 5.

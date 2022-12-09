@@ -32,14 +32,14 @@ def main(argv):
     a.buildBasis(k=1, Emax=Emax)
     a.buildBasis(k=-1, Emax=Emax)
     
-    print 'K=1 full basis size = ',  a.fullBasis[1].size
-    print 'K=-1 full basis size = ',  a.fullBasis[-1].size
-    print 'K=1 basis size = ',  a.basis[1].size
-    print 'K=-1 basis size = ',  a.basis[-1].size
+    print('K=1 full basis size = ',  a.fullBasis[1].size)
+    print('K=-1 full basis size = ',  a.fullBasis[-1].size)
+    print('K=1 basis size = ',  a.basis[1].size)
+    print('K=-1 basis size = ',  a.basis[-1].size)
     
-    a.setcouplings(g4=g)
+    a.setcouplings(g4=g, g2=0.0)
 
-    print "Computing raw eigenvalues for g4 = ", g
+    print("Computing raw eigenvalues for g4 = ", g)
 
     a.computeHamiltonian(k=1, ren=False)
     a.computeHamiltonian(k=-1, ren=False)
@@ -47,27 +47,26 @@ def main(argv):
     a.computeEigval(k=1, sigma=sigma, n=neigs, ren=False)
     a.computeEigval(k=-1, sigma=sigma, n=neigs, ren=False)
         
-    print "Raw vacuum energy: ", a.vacuumE(ren="raw")
-    print "K=1 Raw spectrum: ", a.spectrum(k=1, ren="raw")
-    print "K=-1 Raw spectrum: ", a.spectrum(k=-1, ren="raw")
+    print("Raw vacuum energy: ", a.vacuumE(ren="raw"))
+    print("K=1 Raw spectrum: ", a.spectrum(k=1, ren="raw"))
+    print("K=-1 Raw spectrum: ", a.spectrum(k=-1, ren="raw"))
         
     a.renlocal(Er=a.vacuumE(ren="raw"))
         
-    print "Computing renormalized eigenvalues for g0r,g2r,g4r = ", a.g0r,a.g2r,a.g4r
+    print("Computing renormalized eigenvalues for g0r,g2r,g4r = ", a.g0r,a.g2r,a.g4r)
         
     a.computeHamiltonian(k=1, ren=True)
     a.computeHamiltonian(k=-1, ren=True)
 
     a.computeEigval(k=1, sigma=sigma, n=neigs, ren=True, corr=True)
     a.computeEigval(k=-1, sigma=sigma, n=neigs, ren=True, corr=True)
-
-    print "Renlocal vacuum energy: ", a.vacuumE(ren="renlocal")
-    print "K=1 renlocal spectrum: ", a.spectrum(k=1, ren="renlocal")
-    print "K=-1 renlocal spectrum: ", a.spectrum(k=-1, ren="renlocal")
+    print("Renlocal vacuum energy: ", a.vacuumE(ren="renlocal"))
+    print("K=1 renlocal spectrum: ", a.spectrum(k=1, ren="renlocal"))
+    print("K=-1 renlocal spectrum: ", a.spectrum(k=-1, ren="renlocal"))
     
-    print "Rensubl vacuum energy: ", a.vacuumE(ren="rensubl")
-    print "K=1 rensubl spectrum: ", a.spectrum(k=1, ren="rensubl")
-    print "K=-1 rensubl spectrum: ", a.spectrum(k=-1, ren="rensubl")
+    print("Rensubl vacuum energy: ", a.vacuumE(ren="rensubl"))
+    print("K=1 rensubl spectrum: ", a.spectrum(k=1, ren="rensubl"))
+    print("K=-1 rensubl spectrum: ", a.spectrum(k=-1, ren="rensubl"))
         
 
 if __name__ == "__main__":
