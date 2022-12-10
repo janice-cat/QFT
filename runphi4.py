@@ -21,8 +21,11 @@ import pickle
 
 
 def main():
-    Emax= 10.0
-    L   =  6.283185307179586
+    global doMinimal, doRen
+    doMinimal = int(sys.argv[1])
+    doRen     = int(sys.argv[2])
+    Emax= 20.0 if not doMinimal else 10.0
+    L   = 10.0 if not doMinimal else  6.283185307179586
     m   = 1 
 
     a   = phi1234.Phi1234()
@@ -39,8 +42,8 @@ def main():
 
     a.loadMatrix(fstr)
 
-    plot_figure4a(a, Emax=Emax, L=L, m=m, ren=True)
-    plot_figure4b(a, Emax=Emax, L=L, m=m, ren=True)
+    plot_figure4a(a, Emax=Emax, L=L, m=m, ren=doRen)
+    plot_figure4b(a, Emax=Emax, L=L, m=m, ren=doRen)
 
 def calcPhi4(a, g4, Emax, neigs=3, g2=0.0, L=2*np.pi, m=1, printout=False,
              save=True,
@@ -62,7 +65,7 @@ def calcPhi4(a, g4, Emax, neigs=3, g2=0.0, L=2*np.pi, m=1, printout=False,
     if os.path.exists(f'data/Emax={Emax}_L={L}_g2={g2}_g4={g4}_spectrum.pkl'):
         with open(f'data/Emax={Emax}_L={L}_g2={g2}_g4={g4}_spectrum.pkl', 'rb') as handle:
             data_dict = pickle.load(handle)
-            if (ren==False): 
+            if not ren: 
                 return data_dict['E0'], data_dict['K1spectrum'], data_dict['K-1spectrum']
             else:
                 return [ data_dict['E0_renlocal'], data_dict['E0_rensubl'] ], \
@@ -95,7 +98,7 @@ def calcPhi4(a, g4, Emax, neigs=3, g2=0.0, L=2*np.pi, m=1, printout=False,
         print("K=1 Raw spectrum: ", K1spectrum)
         print("K=-1 Raw spectrum: ", Km1spectrum)
 
-    if (ren==False): 
+    if not ren: 
         if save:
             data_dict = {}
             data_dict['E0'] = vacuumE
@@ -164,14 +167,14 @@ def plot_figure4a(a, Emax=20, L=10, m=1, ren=False):
                             save=True,
                             ren=ren)
         e0_arr.append(E0) 
-        if (not ren): 
+        if not ren: 
             print('g4 = {:.3f}, E0 = {:.3f}'.format(g4, E0))
         else: 
             ### renlocal, rensubl
             print('g4 = {:.3f}, E0_renlocal = {:.3f}, E0_rensubl = {:.3f}'.format(g4, *E0))
     
     fig, ax = plt.subplots()
-    if (not ren): 
+    if not ren: 
         ax.plot(garr, e0_arr, 'o-', markersize=3)
     else:
         e0_arr = np.array(e0_arr)
@@ -181,7 +184,9 @@ def plot_figure4a(a, Emax=20, L=10, m=1, ren=False):
     ax.set_xlabel('$g_4$')
     ax.set_ylabel('$E_0$')
     ax.set_xlim([0,5])
-    if (isinstance(E0, list)): plt.legend(['ren','subl'])
+    if ren: 
+        leg = plt.legend([r'$\rm ren.$',r'$\rm subl.$'])
+        leg.get_frame().set_linewidth(0.)
     
     ax.set_title(r"$m={}$, $L={}$, $E_{{\rm max}} = {}$".format(
         m, 
@@ -189,8 +194,12 @@ def plot_figure4a(a, Emax=20, L=10, m=1, ren=False):
         Emax))
     
     fig.tight_layout()
-    plt.savefig('plots/reproduce_fig4a_{}_phi4.pdf'.format('raw' if not ren else 'ren'))
-    os.system('dropbox_uploader.sh upload plots/reproduce_fig4a_{}_phi4.pdf /tmp/'.format('raw' if not ren else 'ren'))
+    plt.savefig('plots/reproduce_fig4a_{}_phi4{}.pdf'.format(
+        'raw'   if not ren else 'ren',
+        ''      if not doMinimal else '_minimal'))
+    os.system('dropbox_uploader.sh upload plots/reproduce_fig4a_{}_phi4{}.pdf /tmp/'.format(
+        'raw'   if not ren else 'ren',
+        ''      if not doMinimal else '_minimal'))
 
 
 def plot_figure4b(a, Emax=20, L=10, m=1, ren=False):
@@ -200,7 +209,7 @@ def plot_figure4b(a, Emax=20, L=10, m=1, ren=False):
     g2 = 0
     garr = np.linspace(0, 5, 26)
     
-    if (not ren): 
+    if not ren: 
         deltaE_dict = {i: [] for i in range(5)}
     else:
         deltaE_dict = {i: 
@@ -217,7 +226,7 @@ def plot_figure4b(a, Emax=20, L=10, m=1, ren=False):
         
         #### fill out the excited state energy against the ground state energy
         #### for E_{I} where I: 1 -> 5
-        if (not ren): 
+        if not ren: 
             deltaE_dict[0].append( Km1spectrum[0] )
             deltaE_dict[1].append( K1spectrum[0]  )
             deltaE_dict[2].append( K1spectrum[1]  )
@@ -264,7 +273,7 @@ def plot_figure4b(a, Emax=20, L=10, m=1, ren=False):
 
     
     fig, ax = plt.subplots()
-    if (not ren): 
+    if not ren: 
         ax.plot(garr, deltaE_dict[0], '-', markersize=3, color='red')
         ax.plot(garr, deltaE_dict[1], '-', markersize=3, color='blue')
         ax.plot(garr, deltaE_dict[2], '-', markersize=3, color='blue')
@@ -285,14 +294,18 @@ def plot_figure4b(a, Emax=20, L=10, m=1, ren=False):
     ax.set_xlabel('$g_4$')
     ax.set_ylabel('$E_I - E_0$')
     ax.set_xlim([0,5])
-    ax.set_ylim([0,ax.get_ylim()[1]])
-    if (not ren): 
-        plt.legend(['$Z_2 = -$','$Z_2 = +$'])
+    ax.set_ylim([0,8 if doMinimal else 6])
+    if not ren: 
+        leg = plt.legend(['$Z_2 = -$','$Z_2 = +$'],
+            bbox_to_anchor = (0.99, 0.99), loc='upper right')
+        leg.get_frame().set_linewidth(0.)
     else:
-        plt.legend(['ren. $Z_2 = -$',
-                    'subl. $Z_2 = -$',
-                    'ren. $Z_2 = +$',
-                    'subl. $Z_2 = +$'])
+        leg = plt.legend([r'${\rm ren.~}Z_2 = -$',
+                          r'${\rm subl.~}Z_2 = -$',
+                          r'${\rm ren.~}Z_2 = +$',
+                          r'${\rm subl.~}Z_2 = +$'],
+            bbox_to_anchor = (0.99, 0.99), loc='upper right')
+        leg.get_frame().set_linewidth(0.)
 
     ax.set_title(r"$m={}$, $L={}$, $E_{{\rm max}} = {}$".format(
         m, 
@@ -300,9 +313,62 @@ def plot_figure4b(a, Emax=20, L=10, m=1, ren=False):
         Emax))
     
     fig.tight_layout()
-    plt.savefig('plots/reproduce_fig4b_{}_phi4.pdf'.format('raw' if not ren else 'ren'))
-    os.system('dropbox_uploader.sh upload plots/reproduce_fig4b_{}_phi4.pdf /tmp/'.format('raw' if not ren else 'ren'))
+    plt.savefig('plots/reproduce_fig4b_{}_phi4{}.pdf'.format(
+        'raw'   if not ren else 'ren',
+        ''      if not doMinimal else '_minimal'))
+    os.system('dropbox_uploader.sh upload plots/reproduce_fig4b_{}_phi4{}.pdf /tmp/'.format(
+        'raw'   if not ren else 'ren',
+        ''      if not doMinimal else '_minimal'))
 
+
+    #### do fitting ###
+    deltaE_arr = deltaE_dict[0] if not ren else \
+                 deltaE_dict[0]['rensubl']
+
+    def mph_fit(g, C, gc, Delta): return C * np.power( abs(g - gc), 1/(2-Delta) )
+
+    ### fitting region from 1.4 to 2.4 => index 7-12
+
+    p0_gc  = garr[ np.argmin(deltaE_arr) ]
+    p0_arr = [-1/p0_gc, p0_gc, 1]
+    print("Initializing fitting, with C: {:.3f}, gc: {:.3f}, Delta: {:.3f}".format(*p0_arr))
+    param, param_cov = scipy.optimize.curve_fit(mph_fit, 
+                        garr[7:13], deltaE_arr[7:13],
+                        p0 = p0_arr )
+
+    print("Fitted params:")
+    print("C: {:.3f}, gc: {:.3f}, Delta: {:.3f}".format(*param))
+    print("Covariance matrix:")
+    print(param_cov)
+
+    gc      = param[1]
+    gc_err  = np.sqrt(param_cov[1][1])
+    Delta   = param[2]
+    Delta_err = np.sqrt(param_cov[2][2])
+
+
+    x       = np.linspace(1.4, 2.4, 30)
+    y       = mph_fit(x, *param)
+    x_extrap= np.linspace(2.4, gc, 30)
+    y_extrap= mph_fit(x_extrap, *param)
+    
+    plt.plot(x, y, '-',  color ='black', linewidth = 1)
+    plt.plot(x_extrap, y_extrap, '--',  color ='black', linewidth = 1)
+
+    plt.text(0.1, 7.3/8*ax.get_ylim()[1], 
+        r'$g_{{4,c}}{{\rm~from~fit:~}}{:.2f} \pm {:.4f}$'.format( gc, gc_err ),
+        fontsize=20)
+    plt.text(0.1, 6.4/8*ax.get_ylim()[1], 
+        r'$\Delta_{{\epsilon}}{{\rm~from~fit:~}}{:.2f} \pm {:.4f}$'.format( Delta, Delta_err ),
+        fontsize=20)
+
+
+    plt.savefig('plots/reproduce_fig4b_{}_phi4_fit{}.pdf'.format(
+        'raw'   if not ren else 'ren',
+        ''      if not doMinimal else '_minimal'))
+    os.system('dropbox_uploader.sh upload plots/reproduce_fig4b_{}_phi4_fit{}.pdf /tmp/'.format(
+        'raw'   if not ren else 'ren',
+        ''      if not doMinimal else '_minimal'))
 
 if __name__ == '__main__':
     main()
