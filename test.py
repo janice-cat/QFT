@@ -7,9 +7,10 @@ from functools import partial
 
 def main():
 
-    Emax= 22.0
-    L   =  6.0
+    Emax= 20.0 #22.0
+    L   = 10.0 #6.0
     m   = 1 
+    g4  = float(sys.argv[1])
 
     a   = phi1234.Phi1234()
     fstr= "data/Emax=" + str(Emax) + "_L=" + str(L) + ".npz"
@@ -25,23 +26,14 @@ def main():
 
     a.loadMatrix(fstr)
 
-    fpartial = partial(f, Emax=Emax, L=L, m=m, a=a)
-    with mp.Pool(16) as p:
-        garr = np.linspace(0, 5, 26)
-        results = p.map(fpartial, garr)
-        
-    print(results)
+    calcPhi4(a, g4, Emax, neigs=3, g2=0, L=L, m=m,
+             ren=True, save=True, printout=True)
 
-def f(g4, Emax, L, m, a):
-
-    E0, _, _ = calcPhi4(a, g4, Emax, neigs=3, g2=0, L=L, m=m,
-                    ren=True, printout=True)
-
-    return( [ 
+    print( 
         a.vacuumE(ren="raw"), a.spectrum(k=1, ren="raw"), a.spectrum(k=-1, ren="raw"),
         a.vacuumE(ren="renlocal"), a.spectrum(k=1, ren="renlocal"), a.spectrum(k=-1, ren="renlocal"),
         a.vacuumE(ren="rensubl"), a.spectrum(k=1, ren="rensubl"), a.spectrum(k=-1, ren="rensubl")
-        ] )
+        )
 
 if __name__ == '__main__':
     main()
