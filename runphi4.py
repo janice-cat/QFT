@@ -39,8 +39,8 @@ def main():
 
     a.loadMatrix(fstr)
 
-    # plot_figure4a(a, Emax=Emax, L=L, m=m)
-    plot_figure4b(a, Emax=Emax, L=L, m=m)
+    plot_figure4a(a, Emax=Emax, L=L, m=m, ren=False)
+    plot_figure4b(a, Emax=Emax, L=L, m=m, ren=False)
 
 def calcPhi4(a, g4, Emax, neigs=3, g2=0.0, L=2*np.pi, m=1, printout=False,
              save=True,
@@ -150,11 +150,8 @@ def calcPhi4(a, g4, Emax, neigs=3, g2=0.0, L=2*np.pi, m=1, printout=False,
         return [ vacuumE_renlocal, vacuumE_rensubl ], \
                [ K1spectrum_renlocal, K1spectrum_rensubl ], \
                [ Km1spectrum_renlocal, Km1spectrum_rensubl ]
-        # return a.vacuumE(ren="renlocal"), a.spectrum(k=1, ren="renlocal"), a.spectrum(k=-1, ren="renlocal")
-        # return a.vacuumE(ren="rensubl"), a.spectrum(k=1, ren="rensubl"), a.spectrum(k=-1, ren="rensubl")
 
-
-def plot_figure4a(a, Emax=20, L=10, m=1):
+def plot_figure4a(a, Emax=20, L=10, m=1, ren=False):
     """ Plot vacuum energy vs g for phi^4 theory.
     """
     u.plotStyle()
@@ -165,74 +162,145 @@ def plot_figure4a(a, Emax=20, L=10, m=1):
         print('g4 = {:.3f} ...'.format(g4), end='\r')
         E0, _, _ = calcPhi4(a, g4, Emax, neigs=3, g2=g2, L=L, m=m,
                             save=True,
-                            ren=False)
-        e0_arr.append(E0) ### renlocal, rensubl
-        print('g4 = {:.3f}, E0 = {:.3f}'.format(g4, E0))
-        # print('g4 = {:.3f}, E0_renlocal = {:.3f}, E0_rensubl = {:.3f}'.format(g4, *E0))
+                            ren=ren)
+        e0_arr.append(E0) 
+        if (not ren): 
+            print('g4 = {:.3f}, E0 = {:.3f}'.format(g4, E0))
+        else: 
+            ### renlocal, rensubl
+            print('g4 = {:.3f}, E0_renlocal = {:.3f}, E0_rensubl = {:.3f}'.format(g4, *E0))
     
-    e0_arr = np.array(e0_arr)
-    print(e0_arr)
     fig, ax = plt.subplots()
-    ax.plot(garr, e0_arr, 'o-', markersize=3)
-    # ax.plot(garr, e0_arr[:,0], '-', markersize=3)
-    # ax.plot(garr, e0_arr[:,1], '--', markersize=3)
+    if (not ren): 
+        ax.plot(garr, e0_arr, 'o-', markersize=3)
+    else:
+        e0_arr = np.array(e0_arr)
+        ax.plot(garr, e0_arr[:,0], '-', markersize=3)
+        ax.plot(garr, e0_arr[:,1], '--', markersize=3)
+
     ax.set_xlabel('$g_4$')
     ax.set_ylabel('$E_0$')
     ax.set_xlim([0,5])
-    # plt.legend(['ren','subl'])
+    if (isinstance(E0, list)): plt.legend(['ren','subl'])
+    
     ax.set_title(r"$m={}$, $L={}$, $E_{{\rm max}} = {}$".format(
         m, 
         L if abs(L-2*np.pi) > 1e-3 else 6.28, 
         Emax))
+    
     fig.tight_layout()
-    plt.savefig('plots/reproduce_fig4a_raw_phi4.pdf')
-    os.system('dropbox_uploader.sh upload plots/reproduce_fig4a_raw_phi4.pdf /tmp/')
+    plt.savefig('plots/reproduce_fig4a_{}_phi4.pdf'.format('raw' if not ren else 'ren'))
+    os.system('dropbox_uploader.sh upload plots/reproduce_fig4a_{}_phi4.pdf /tmp/'.format('raw' if not ren else 'ren'))
 
 
-def plot_figure4b(a, Emax=20, L=10, m=1):
+def plot_figure4b(a, Emax=20, L=10, m=1, ren=False):
     """ Plot excited state energy - vacuum energy vs g for phi^4 theory.
     """
     u.plotStyle()
     g2 = 0
     garr = np.linspace(0, 5, 26)
-    deltaE_dict = {i: [] for i in range(5)}
+    
+    if (not ren): 
+        deltaE_dict = {i: [] for i in range(5)}
+    else:
+        deltaE_dict = {i: 
+                        {'renlocal': [],
+                         'rensubl' : []
+                        } for i in range(5) 
+                      }
+
     for g4 in garr:
         print('g4 = {:.3f} ...'.format(g4), end='\r')
         E0, K1spectrum, Km1spectrum = calcPhi4(a, g4, Emax, neigs=3, g2=g2, L=L, m=m,
                             save=True,
-                            ren=False)
+                            ren=ren)
         
         #### fill out the excited state energy against the ground state energy
         #### for E_{I} where I: 1 -> 5
-        deltaE_dict[0].append( Km1spectrum[0] - E0 )
-        deltaE_dict[1].append( K1spectrum[0]  - E0 )
-        deltaE_dict[2].append( K1spectrum[1]  - E0 )
-        deltaE_dict[3].append( Km1spectrum[1] - E0 )
-        deltaE_dict[4].append( Km1spectrum[2] - E0 )
-        print('g4 = {:.3f}, dE1 = {:.3f}, dE2 = {:.3f}, dE3 = {:.3f}, dE4 = {:.3f}, dE5 = {:.3f}'.format(
-               g4, deltaE_dict[0][-1], \
-                   deltaE_dict[1][-1], \
-                   deltaE_dict[2][-1], \
-                   deltaE_dict[3][-1], \
-                   deltaE_dict[4][-1] ))
+        if (not ren): 
+            deltaE_dict[0].append( Km1spectrum[0] - E0 )
+            deltaE_dict[1].append( K1spectrum[0]  - E0 )
+            deltaE_dict[2].append( K1spectrum[1]  - E0 )
+            deltaE_dict[3].append( Km1spectrum[1] - E0 )
+            deltaE_dict[4].append( Km1spectrum[2] - E0 )
+            print('g4 = {:.3f}, dE1 = {:.3f}, dE2 = {:.3f}, dE3 = {:.3f}, dE4 = {:.3f}, dE5 = {:.3f}'.format(
+                   g4, deltaE_dict[0][-1], \
+                       deltaE_dict[1][-1], \
+                       deltaE_dict[2][-1], \
+                       deltaE_dict[3][-1], \
+                       deltaE_dict[4][-1] ))
+        else:
+            # print(E0)
+            # print(K1spectrum)
+            # print(Km1spectrum)
+            deltaE_dict[0]['renlocal'].append( Km1spectrum[0][0] - E0[0] )
+            deltaE_dict[1]['renlocal'].append( K1spectrum[0][0]  - E0[0] )
+            deltaE_dict[2]['renlocal'].append( K1spectrum[0][1]  - E0[0] )
+            deltaE_dict[3]['renlocal'].append( Km1spectrum[0][1] - E0[0] )
+            deltaE_dict[4]['renlocal'].append( Km1spectrum[0][2] - E0[0] )
+
+            deltaE_dict[0]['rensubl'].append( Km1spectrum[1][0] - E0[1] )
+            deltaE_dict[1]['rensubl'].append( K1spectrum[1][0]  - E0[1] )
+            deltaE_dict[2]['rensubl'].append( K1spectrum[1][1]  - E0[1] )
+            deltaE_dict[3]['rensubl'].append( Km1spectrum[1][1] - E0[1] )
+            deltaE_dict[4]['rensubl'].append( Km1spectrum[1][2] - E0[1] )
+
+            # print(deltaE_dict)
+
+            print('g4 = {:.3f}, ren local:\n'
+                  'dE1 = {:.3f}, dE2 = {:.3f}, dE3 = {:.3f}, dE4 = {:.3f}, dE5 = {:.3f}'.format(
+                   g4, deltaE_dict[0]['renlocal'][-1], \
+                       deltaE_dict[1]['renlocal'][-1], \
+                       deltaE_dict[2]['renlocal'][-1], \
+                       deltaE_dict[3]['renlocal'][-1], \
+                       deltaE_dict[4]['renlocal'][-1] ))
+            print('g4 = {:.3f}, ren subl.:\n'
+                  'dE1 = {:.3f}, dE2 = {:.3f}, dE3 = {:.3f}, dE4 = {:.3f}, dE5 = {:.3f}'.format(
+                   g4, deltaE_dict[0]['rensubl'][-1], \
+                       deltaE_dict[1]['rensubl'][-1], \
+                       deltaE_dict[2]['rensubl'][-1], \
+                       deltaE_dict[3]['rensubl'][-1], \
+                       deltaE_dict[4]['rensubl'][-1] ))
+
     
     fig, ax = plt.subplots()
-    ax.plot(garr, deltaE_dict[0], '-', markersize=3, color='red')
-    ax.plot(garr, deltaE_dict[1], '-', markersize=3, color='blue')
-    ax.plot(garr, deltaE_dict[2], '-', markersize=3, color='blue')
-    ax.plot(garr, deltaE_dict[3], '-', markersize=3, color='red')
-    ax.plot(garr, deltaE_dict[4], '-', markersize=3, color='red')
+    if (not ren): 
+        ax.plot(garr, deltaE_dict[0], '-', markersize=3, color='red')
+        ax.plot(garr, deltaE_dict[1], '-', markersize=3, color='blue')
+        ax.plot(garr, deltaE_dict[2], '-', markersize=3, color='blue')
+        ax.plot(garr, deltaE_dict[3], '-', markersize=3, color='red')
+        ax.plot(garr, deltaE_dict[4], '-', markersize=3, color='red')
+    else:
+        ax.plot(garr, deltaE_dict[0]['renlocal'], '-', markersize=3, color='red')
+        ax.plot(garr, deltaE_dict[0]['rensubl'], '--', markersize=3, color='red')
+        ax.plot(garr, deltaE_dict[1]['renlocal'], '-', markersize=3, color='blue')
+        ax.plot(garr, deltaE_dict[1]['rensubl'], '--', markersize=3, color='blue')
+        ax.plot(garr, deltaE_dict[2]['renlocal'], '-', markersize=3, color='blue')
+        ax.plot(garr, deltaE_dict[2]['rensubl'], '--', markersize=3, color='blue')
+        ax.plot(garr, deltaE_dict[3]['renlocal'], '-', markersize=3, color='red')
+        ax.plot(garr, deltaE_dict[3]['rensubl'], '--', markersize=3, color='red')
+        ax.plot(garr, deltaE_dict[4]['renlocal'], '-', markersize=3, color='red')
+        ax.plot(garr, deltaE_dict[4]['rensubl'], '--', markersize=3, color='red')
+    
     ax.set_xlabel('$g_4$')
     ax.set_ylabel('$E_I - E_0$')
     ax.set_xlim([0,5])
-    plt.legend(['$Z_2 = -$','$Z_2 = +$'])
+    if (not ren): 
+        plt.legend(['$Z_2 = -$','$Z_2 = +$'])
+    else:
+        plt.legend(['ren. $Z_2 = -$',
+                    'subl. $Z_2 = -$',
+                    'ren. $Z_2 = +$',
+                    'subl. $Z_2 = +$'])
+
     ax.set_title(r"$m={}$, $L={}$, $E_{{\rm max}} = {}$".format(
         m, 
         L if abs(L-2*np.pi) > 1e-3 else 6.28, 
         Emax))
+    
     fig.tight_layout()
-    plt.savefig('plots/reproduce_fig4b_raw_phi4.pdf')
-    os.system('dropbox_uploader.sh upload plots/reproduce_fig4b_raw_phi4.pdf /tmp/')
+    plt.savefig('plots/reproduce_fig4b_{}_phi4.pdf'.format('raw' if not ren else 'ren'))
+    os.system('dropbox_uploader.sh upload plots/reproduce_fig4b_{}_phi4.pdf /tmp/'.format('raw' if not ren else 'ren'))
 
 
 if __name__ == '__main__':

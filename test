@@ -1,0 +1,9 @@
+#! /usr/bin/env python3
+import os
+import numpy as np
+
+garr = np.linspace(0, 5, 26)
+
+for i in garr:
+	print( "g4: ", i )
+	os.system("python3 test.py {} > g4_{}.log & ".format(i, i))
