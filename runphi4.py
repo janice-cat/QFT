@@ -39,8 +39,8 @@ def main():
 
     a.loadMatrix(fstr)
 
-    plot_figure4a(a, Emax=Emax, L=L, m=m, ren=False)
-    plot_figure4b(a, Emax=Emax, L=L, m=m, ren=False)
+    plot_figure4a(a, Emax=Emax, L=L, m=m, ren=True)
+    plot_figure4b(a, Emax=Emax, L=L, m=m, ren=True)
 
 def calcPhi4(a, g4, Emax, neigs=3, g2=0.0, L=2*np.pi, m=1, printout=False,
              save=True,
@@ -55,7 +55,7 @@ def calcPhi4(a, g4, Emax, neigs=3, g2=0.0, L=2*np.pi, m=1, printout=False,
     k1 : spectrum for Kparity == 1
     k2 : spectrum for Kparity == -1
     """
-    sigma = -30. #hard coded parameter
+    sigma = -g4*1.9-1e-2 #hard coded parameter
 
 
     # check if this spectrum computation has already been done
@@ -218,11 +218,11 @@ def plot_figure4b(a, Emax=20, L=10, m=1, ren=False):
         #### fill out the excited state energy against the ground state energy
         #### for E_{I} where I: 1 -> 5
         if (not ren): 
-            deltaE_dict[0].append( Km1spectrum[0] - E0 )
-            deltaE_dict[1].append( K1spectrum[0]  - E0 )
-            deltaE_dict[2].append( K1spectrum[1]  - E0 )
-            deltaE_dict[3].append( Km1spectrum[1] - E0 )
-            deltaE_dict[4].append( Km1spectrum[2] - E0 )
+            deltaE_dict[0].append( Km1spectrum[0] )
+            deltaE_dict[1].append( K1spectrum[0]  )
+            deltaE_dict[2].append( K1spectrum[1]  )
+            deltaE_dict[3].append( Km1spectrum[1] )
+            deltaE_dict[4].append( Km1spectrum[2] )
             print('g4 = {:.3f}, dE1 = {:.3f}, dE2 = {:.3f}, dE3 = {:.3f}, dE4 = {:.3f}, dE5 = {:.3f}'.format(
                    g4, deltaE_dict[0][-1], \
                        deltaE_dict[1][-1], \
@@ -233,17 +233,17 @@ def plot_figure4b(a, Emax=20, L=10, m=1, ren=False):
             # print(E0)
             # print(K1spectrum)
             # print(Km1spectrum)
-            deltaE_dict[0]['renlocal'].append( Km1spectrum[0][0] - E0[0] )
-            deltaE_dict[1]['renlocal'].append( K1spectrum[0][0]  - E0[0] )
-            deltaE_dict[2]['renlocal'].append( K1spectrum[0][1]  - E0[0] )
-            deltaE_dict[3]['renlocal'].append( Km1spectrum[0][1] - E0[0] )
-            deltaE_dict[4]['renlocal'].append( Km1spectrum[0][2] - E0[0] )
+            deltaE_dict[0]['renlocal'].append( Km1spectrum[0][0] )
+            deltaE_dict[1]['renlocal'].append( K1spectrum[0][0]  )
+            deltaE_dict[2]['renlocal'].append( K1spectrum[0][1]  )
+            deltaE_dict[3]['renlocal'].append( Km1spectrum[0][1] )
+            deltaE_dict[4]['renlocal'].append( Km1spectrum[0][2] )
 
-            deltaE_dict[0]['rensubl'].append( Km1spectrum[1][0] - E0[1] )
-            deltaE_dict[1]['rensubl'].append( K1spectrum[1][0]  - E0[1] )
-            deltaE_dict[2]['rensubl'].append( K1spectrum[1][1]  - E0[1] )
-            deltaE_dict[3]['rensubl'].append( Km1spectrum[1][1] - E0[1] )
-            deltaE_dict[4]['rensubl'].append( Km1spectrum[1][2] - E0[1] )
+            deltaE_dict[0]['rensubl'].append( Km1spectrum[1][0] )
+            deltaE_dict[1]['rensubl'].append( K1spectrum[1][0]  )
+            deltaE_dict[2]['rensubl'].append( K1spectrum[1][1]  )
+            deltaE_dict[3]['rensubl'].append( Km1spectrum[1][1] )
+            deltaE_dict[4]['rensubl'].append( Km1spectrum[1][2] )
 
             # print(deltaE_dict)
 
@@ -285,6 +285,7 @@ def plot_figure4b(a, Emax=20, L=10, m=1, ren=False):
     ax.set_xlabel('$g_4$')
     ax.set_ylabel('$E_I - E_0$')
     ax.set_xlim([0,5])
+    ax.set_ylim([0,ax.get_ylim()[1]])
     if (not ren): 
         plt.legend(['$Z_2 = -$','$Z_2 = +$'])
     else:
