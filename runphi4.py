@@ -12,6 +12,8 @@ import sys
 import scipy
 import numpy as np
 import os
+import matplotlib
+matplotlib.use('Agg')
 from matplotlib import pyplot as plt
 import matplotlib.colors as colors
 import utility as u
@@ -37,7 +39,8 @@ def main():
 
     a.loadMatrix(fstr)
 
-    plot_figure4(a, Emax=Emax, L=L, m=m)
+    # plot_figure4a(a, Emax=Emax, L=L, m=m)
+    plot_figure4b(a, Emax=Emax, L=L, m=m)
 
 def calcPhi4(a, g4, Emax, neigs=3, g2=0.0, L=2*np.pi, m=1, printout=False,
              save=True,
@@ -151,9 +154,8 @@ def calcPhi4(a, g4, Emax, neigs=3, g2=0.0, L=2*np.pi, m=1, printout=False,
         # return a.vacuumE(ren="rensubl"), a.spectrum(k=1, ren="rensubl"), a.spectrum(k=-1, ren="rensubl")
 
 
-def plot_figure4(a, Emax=20, L=10, m=1):
-    """ Plot vacuum energy vs g for phi^2 theory.
-    TODO: Code numerical integration to get E(L) and compare to exact result.
+def plot_figure4a(a, Emax=20, L=10, m=1):
+    """ Plot vacuum energy vs g for phi^4 theory.
     """
     u.plotStyle()
     g2 = 0
@@ -176,10 +178,61 @@ def plot_figure4(a, Emax=20, L=10, m=1):
     # ax.plot(garr, e0_arr[:,1], '--', markersize=3)
     ax.set_xlabel('$g_4$')
     ax.set_ylabel('$E_0$')
+    ax.set_xlim([0,5])
     # plt.legend(['ren','subl'])
-    ax.set_title(f"m={m}, L={L:.2f}, Emax = {Emax}")
+    ax.set_title(r"$m={}$, $L={}$, $E_{{\rm max}} = {}$".format(
+        m, 
+        L if abs(L-2*np.pi) > 1e-3 else 6.28, 
+        Emax))
     fig.tight_layout()
-    plt.savefig('plots/reproduce_fig4_raw_phi4.pdf')
+    plt.savefig('plots/reproduce_fig4a_raw_phi4.pdf')
+    os.system('dropbox_uploader.sh upload plots/reproduce_fig4a_raw_phi4.pdf /tmp/')
+
+
+def plot_figure4b(a, Emax=20, L=10, m=1):
+    """ Plot excited state energy - vacuum energy vs g for phi^4 theory.
+    """
+    u.plotStyle()
+    g2 = 0
+    garr = np.linspace(0, 5, 26)
+    deltaE_dict = {i: [] for i in range(5)}
+    for g4 in garr:
+        print('g4 = {:.3f} ...'.format(g4), end='\r')
+        E0, K1spectrum, Km1spectrum = calcPhi4(a, g4, Emax, neigs=3, g2=g2, L=L, m=m,
+                            save=True,
+                            ren=False)
+        
+        #### fill out the excited state energy against the ground state energy
+        #### for E_{I} where I: 1 -> 5
+        deltaE_dict[0].append( Km1spectrum[0] - E0 )
+        deltaE_dict[1].append( K1spectrum[0]  - E0 )
+        deltaE_dict[2].append( K1spectrum[1]  - E0 )
+        deltaE_dict[3].append( Km1spectrum[1] - E0 )
+        deltaE_dict[4].append( Km1spectrum[2] - E0 )
+        print('g4 = {:.3f}, dE1 = {:.3f}, dE2 = {:.3f}, dE3 = {:.3f}, dE4 = {:.3f}, dE5 = {:.3f}'.format(
+               g4, deltaE_dict[0][-1], \
+                   deltaE_dict[1][-1], \
+                   deltaE_dict[2][-1], \
+                   deltaE_dict[3][-1], \
+                   deltaE_dict[4][-1] ))
+    
+    fig, ax = plt.subplots()
+    ax.plot(garr, deltaE_dict[0], '-', markersize=3, color='red')
+    ax.plot(garr, deltaE_dict[1], '-', markersize=3, color='blue')
+    ax.plot(garr, deltaE_dict[2], '-', markersize=3, color='blue')
+    ax.plot(garr, deltaE_dict[3], '-', markersize=3, color='red')
+    ax.plot(garr, deltaE_dict[4], '-', markersize=3, color='red')
+    ax.set_xlabel('$g_4$')
+    ax.set_ylabel('$E_I - E_0$')
+    ax.set_xlim([0,5])
+    plt.legend(['$Z_2 = -$','$Z_2 = +$'])
+    ax.set_title(r"$m={}$, $L={}$, $E_{{\rm max}} = {}$".format(
+        m, 
+        L if abs(L-2*np.pi) > 1e-3 else 6.28, 
+        Emax))
+    fig.tight_layout()
+    plt.savefig('plots/reproduce_fig4b_raw_phi4.pdf')
+    os.system('dropbox_uploader.sh upload plots/reproduce_fig4b_raw_phi4.pdf /tmp/')
 
 
 if __name__ == '__main__':
