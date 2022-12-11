@@ -21,7 +21,8 @@ python3 runphi2.py
 
 ### [Fig. 4a](https://github.com/janice-cat/QFT/blob/master/plots/reproduce_fig4a_raw_phi4.pdf), [Fig. 4b](https://github.com/janice-cat/QFT/blob/master/plots/reproduce_fig4b_raw_phi4_fit.pdf), [Fig. 13a](https://github.com/janice-cat/QFT/blob/master/plots/reproduce_fig13a_raw_phi4.pdf), [Fig. 13b](https://github.com/janice-cat/QFT/blob/master/plots/reproduce_fig13b_raw_phi4.pdf)
 ```bash
-#### paper version (L=2π, Emax=10)
+# python3 runphi4.py <doMinimal> <doRen>
+#### paper version (L=10, Emax=20)
 python3 runphi4.py 0 0
 python3 runphi4.py 0 1
 ```
