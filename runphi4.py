@@ -44,6 +44,8 @@ def main():
 
     plot_figure4a(a, Emax=Emax, L=L, m=m, ren=doRen)
     plot_figure4b(a, Emax=Emax, L=L, m=m, ren=doRen)
+    plot_figure13a(a, Emax=Emax, L=L, m=m, ren=doRen)
+    plot_figure13b(a, Emax=Emax, L=L, m=m, ren=doRen)
 
 def calcPhi4(a, g4, Emax, neigs=3, g2=0.0, L=2*np.pi, m=1, printout=False,
              save=True,
@@ -369,6 +371,118 @@ def plot_figure4b(a, Emax=20, L=10, m=1, ren=False):
     os.system('dropbox_uploader.sh upload plots/reproduce_fig4b_{}_phi4_fit{}.pdf /tmp/'.format(
         'raw'   if not ren else 'ren',
         ''      if not doMinimal else '_minimal'))
+
+def plot_figure13a(a, Emax=20, L=10, m=1, ren=False):
+    """ Plot Δm^2/g^2 vs g for phi^4 theory.
+    """
+    u.plotStyle()
+    g2 = 0
+    garr = np.linspace(0, 5, 26)
+
+    if not ren: 
+        delta_m2_arr = []
+    else:
+        delta_m2_arr = {'renlocal': [],
+                        'rensubl' : []
+                       }
+
+    for g4 in garr:
+        print('g4 = {:.3f} ...'.format(g4), end='\r')
+        E0, K1spectrum, Km1spectrum = calcPhi4(a, g4, Emax, neigs=3, g2=g2, L=L, m=m,
+                            save=True,
+                            ren=ren)
+        
+        #### fill out the excited state energy against the ground state energy
+        #### for E_{0}
+        if not ren: 
+            delta_m2_arr.append( (Km1spectrum[0]*Km1spectrum[0] - m*m)/(g4*g4) )
+            print('g4 = {:.3f}, Δm^2/g^2 = {:.3f}'.format(
+                   g4, delta_m2_arr[-1]) )
+        else:
+            delta_m2_arr['renlocal'].append( (Km1spectrum[0][0]*Km1spectrum[0][0] - m*m)/(g4*g4) )
+            delta_m2_arr['rensubl'].append ( (Km1spectrum[1][0]*Km1spectrum[1][0] - m*m)/(g4*g4) )
+
+            print('g4 = {:.3f}, Δm^2/g^2 (ren.) = {:.3f}, Δm^2/g^2 (subl.) = {:.3f}'.format(
+                   g4, delta_m2_arr['renlocal'][-1],                
+                       delta_m2_arr['rensubl'][-1] ))
+
+    fig, ax = plt.subplots()
+    if not ren: 
+        ax.plot(garr, delta_m2_arr, 'o-', markersize=3)
+    else:
+        ax.plot(garr, delta_m2_arr['renlocal'], '-', markersize=3)
+        ax.plot(garr, delta_m2_arr['rensubl'], '--', markersize=3)
+
+    ax.set_xlabel('$g_4$')
+    ax.set_ylabel('$\Delta m^2/g^2$')
+    ax.set_xlim([0,5])
+    if ren: 
+        leg = plt.legend([r'$\rm ren.$',r'$\rm subl.$'])
+        leg.get_frame().set_linewidth(0.)
+    
+    ax.set_title(r"$m={}$, $L={}$, $E_{{\rm max}} = {}$".format(
+        m, 
+        L if abs(L-2*np.pi) > 1e-3 else 6.28, 
+        Emax))
+    
+    fig.tight_layout()
+    plt.savefig('plots/reproduce_fig13a_{}_phi4{}.pdf'.format(
+        'raw'   if not ren else 'ren',
+        ''      if not doMinimal else '_minimal'))
+    os.system('dropbox_uploader.sh upload plots/reproduce_fig13a_{}_phi4{}.pdf /tmp/'.format(
+        'raw'   if not ren else 'ren',
+        ''      if not doMinimal else '_minimal'))
+
+
+
+def plot_figure13b(a, Emax=20, L=10, m=1, ren=False):
+    """ Plot Λ/g^2 vs g for phi^4 theory.
+    """
+    u.plotStyle()
+    g2 = 0
+    garr = np.linspace(0, 5, 26)
+    lambda_arr = []
+    for g4 in garr:
+        print('g4 = {:.3f} ...'.format(g4), end='\r')
+        E0, _, _ = calcPhi4(a, g4, Emax, neigs=3, g2=g2, L=L, m=m,
+                            save=True,
+                            ren=ren)
+        if not ren: 
+            lambda_arr.append(E0/(g4*g4)) 
+            print('g4 = {:.3f}, Λ/g^2 = {:.3f}'.format(g4, lambda_arr[-1]))
+        else: 
+            lambda_arr.append(np.array(E0)/(g4*g4)) 
+            ### renlocal, rensubl
+            print('g4 = {:.3f}, Λ/g^2 (ren.) = {:.3f}, Λ/g^2 (subl.) = {:.3f}'.format(g4, *(lambda_arr[-1]) ))
+    
+    fig, ax = plt.subplots()
+    if not ren: 
+        ax.plot(garr, lambda_arr, 'o-', markersize=3)
+    else:
+        lambda_arr = np.array(lambda_arr)
+        ax.plot(garr, lambda_arr[:,0], '-', markersize=3)
+        ax.plot(garr, lambda_arr[:,1], '--', markersize=3)
+
+    ax.set_xlabel('$g_4$')
+    ax.set_ylabel('$\Lambda/g^2$')
+    ax.set_xlim([0,5])
+    if ren: 
+        leg = plt.legend([r'$\rm ren.$',r'$\rm subl.$'])
+        leg.get_frame().set_linewidth(0.)
+    
+    ax.set_title(r"$m={}$, $L={}$, $E_{{\rm max}} = {}$".format(
+        m, 
+        L if abs(L-2*np.pi) > 1e-3 else 6.28, 
+        Emax))
+    
+    fig.tight_layout()
+    plt.savefig('plots/reproduce_fig13b_{}_phi4{}.pdf'.format(
+        'raw'   if not ren else 'ren',
+        ''      if not doMinimal else '_minimal'))
+    os.system('dropbox_uploader.sh upload plots/reproduce_fig13b_{}_phi4{}.pdf /tmp/'.format(
+        'raw'   if not ren else 'ren',
+        ''      if not doMinimal else '_minimal'))
+
 
 if __name__ == '__main__':
     main()
