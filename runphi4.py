@@ -377,7 +377,7 @@ def plot_figure13a(a, Emax=20, L=10, m=1, ren=False):
     """
     u.plotStyle()
     g2 = 0
-    garr = np.linspace(0, 5, 26)
+    garr = np.linspace(0, .5, 51)
 
     if not ren: 
         delta_m2_arr = []
@@ -415,7 +415,7 @@ def plot_figure13a(a, Emax=20, L=10, m=1, ren=False):
 
     ax.set_xlabel('$g_4$')
     ax.set_ylabel('$\Delta m^2/g^2$')
-    ax.set_xlim([0,5])
+    ax.set_xlim([0,.5])
     if ren: 
         leg = plt.legend([r'$\rm ren.$',r'$\rm subl.$'])
         leg.get_frame().set_linewidth(0.)
@@ -440,7 +440,7 @@ def plot_figure13b(a, Emax=20, L=10, m=1, ren=False):
     """
     u.plotStyle()
     g2 = 0
-    garr = np.linspace(0, 5, 26)
+    garr = np.linspace(0, .5, 51)
     lambda_arr = []
     for g4 in garr:
         print('g4 = {:.3f} ...'.format(g4), end='\r')
@@ -448,10 +448,10 @@ def plot_figure13b(a, Emax=20, L=10, m=1, ren=False):
                             save=True,
                             ren=ren)
         if not ren: 
-            lambda_arr.append(E0/(g4*g4)) 
+            lambda_arr.append(E0/L/(g4*g4)) 
             print('g4 = {:.3f}, Λ/g^2 = {:.3f}'.format(g4, lambda_arr[-1]))
         else: 
-            lambda_arr.append(np.array(E0)/(g4*g4)) 
+            lambda_arr.append(np.array(E0)/L/(g4*g4)) 
             ### renlocal, rensubl
             print('g4 = {:.3f}, Λ/g^2 (ren.) = {:.3f}, Λ/g^2 (subl.) = {:.3f}'.format(g4, *(lambda_arr[-1]) ))
     
@@ -465,7 +465,7 @@ def plot_figure13b(a, Emax=20, L=10, m=1, ren=False):
 
     ax.set_xlabel('$g_4$')
     ax.set_ylabel('$\Lambda/g^2$')
-    ax.set_xlim([0,5])
+    ax.set_xlim([0,.5])
     if ren: 
         leg = plt.legend([r'$\rm ren.$',r'$\rm subl.$'])
         leg.get_frame().set_linewidth(0.)
